@@ -1,0 +1,70 @@
+--- 
+- 
+  gather_facts: true
+  hosts: localhost
+  remote_user: root
+  tasks: 
+    - 
+      command: "status amazon-cloudwatch-agent"
+      ignore_errors: true
+      name: "Check if Cloudwatch Agent is Installed Already"
+      register: init_status_result
+    - 
+      debug: 
+        var: init_status_result.stderr
+        verbosity: 2
+    - 
+      file: 
+        group: root
+        mode: 493
+        owner: root
+        path: /opt/aws/amazon-cloudwatch-zip
+        recurse: false
+        state: directory
+      name: "Create Directory for Downloading Cloudwatch Agent .zip"
+      when: "init_status_result.stderr is search(\"Unknown job\")"
+    - 
+      get_url: 
+        dest: /opt/aws/amazon-cloudwatch-zip/AmazonCloudWatchAgent.zip
+        mode: 493
+        url: "https://s3.amazonaws.com/amazoncloudwatch-agent/linux/amd64/latest/AmazonCloudWatchAgent.zip"
+      name: "Download Latest Version of Amazon Cloudwatch Agent"
+      when: "init_status_result.stderr is search(\"Unknown job\")"
+    - 
+      name: "Unzip Cloudwatch Download File"
+      unarchive: 
+        dest: /opt/aws/amazon-cloudwatch-zip
+        remote_src: true
+        src: /opt/aws/amazon-cloudwatch-zip/AmazonCloudWatchAgent.zip
+      when: "init_status_result.stderr is search(\"Unknown job\")"
+    - 
+      args: 
+        chdir: /opt/aws/amazon-cloudwatch-zip
+      command: /opt/aws/amazon-cloudwatch-zip/install.sh
+      name: "Execute the Installation Script"
+      when: "init_status_result.stderr is search(\"Unknown job\")"
+    - 
+      copy: 
+        dest: /opt/aws/amazon-cloudwatch-agent/etc
+        group: ec2-user
+        mode: 493
+        owner: ec2-user
+        src: /files/common-config.toml
+      name: "Transfer Cloudwatch Common Configuration(Proxies...) File"
+      when: "init_status_result.stderr is search(\"Unknown job\")"
+    - 
+      copy: 
+        dest: /opt/aws/amazon-cloudwatch-agent/etc
+        group: ec2-user
+        mode: 493
+        owner: ec2-user
+        src: /files/amazon-cloudwatch-agent.json
+      name: "Transfer Cloudwatch Configuration File"
+      when: "init_status_result.stderr is search(\"Unknown job\")"
+    - 
+      command: "stop amazon-cloudwatch-agent"
+      ignore_errors: true
+      name: "Stop Amazon Cloudwatch Agent"
+    - 
+      command: "start amazon-cloudwatch-agent"
+      name: "Start Amazon Cloudwatch Agent"

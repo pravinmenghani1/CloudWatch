@@ -1,0 +1,42 @@
+--- 
+- 
+  gather_facts: true
+  hosts: 192.168.2.92
+  remote_user: root
+  tasks: 
+    - 
+      command: "status amazon-ssm-agent"
+      ignore_errors: true
+      name: "Check if ssm Agent is Installed Already"
+      register: init_status_result
+    - 
+      debug: 
+        var: init_status_result.stderr
+        verbosity: 2
+    - 
+      file: 
+        group: root
+        mode: 493
+        owner: root
+        path: /opt/aws/amazon-ssm-zip
+        recurse: false
+        state: directory
+      name: "Create Directory for Downloading ssm Agent rpm"
+    - 
+      get_url: 
+        dest: /opt/aws/amazon-ssm-zip/amazon-ssm-agent.rpm
+        mode: 493
+        url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm"
+      name: "Download Latest Version of Amazon ssm Agent"
+    - 
+      args: 
+        chdir: /opt/aws/amazon-ssm-zip
+      command: /opt/aws/amazon-ssm-zip/amazon-ssm-agent.rpm
+      name: "Execute the Installation Script"
+    - 
+      command: "stop amazon-ssm-agent"
+      ignore_errors: true
+      name: "Stop Amazon ssm Agent"
+    - 
+      command: "start amazon-ssm-agent"
+      name: "Start Amazon ssm Agent"
