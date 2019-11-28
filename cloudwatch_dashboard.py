@@ -257,15 +257,15 @@ def set_dashboard_names():
     global environment, dashboard_name
  
     if environment == "Development":
-        dashboard_name = environment + "_BMODev"
+        dashboard_name = environment + "_PravinDev"
     elif environment == "Staging":
-        dashboard_name = environment + "_BMOStage"
+        dashboard_name = environment + "_PravinStage"
     elif environment == "Tqa":
-        dashboard_name = environment + "_BMOQA"
+        dashboard_name = environment + "_PravinQA"
     elif environment == "Production":
-        dashboard_name = environment + "_BMOProd"
+        dashboard_name = environment + "_PravinProd"
     elif environment == "Shared Tools":
-        dashboard_name = "SharedTools" + "_BMOShared"
+        dashboard_name = "SharedTools" + "_PravinShared"
     else:
         sys.exit("Please enter a valid environment(Development, Staging, Tqa, Production, \"Shared Tools\")")
 #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
